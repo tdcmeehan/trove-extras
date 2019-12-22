@@ -2,9 +2,5 @@ sudo: false
 language: java
 jdk:
 - openjdk8
-before_install:
-- export JAVA6_HOME=/usr/lib/jvm/java-6-openjdk-amd64
-- export JAVA8_HOME=/usr/lib/jvm/java-8-oracle
-- export JAVA_HOME=$JAVA8_HOME
 after_success:
 - mvn test jacoco:report coveralls:report
