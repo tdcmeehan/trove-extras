@@ -15,7 +15,7 @@ import static java.lang.Long.numberOfTrailingZeros;
 import static java.lang.Math.toIntExact;
 
 /**
- * An implementation of a Trove primtive integer to integer map which is inspired by SwissTable.
+ * An implementation of a Trove primitive integer to integer map which is inspired by SwissTable.
  */
 public class IntIntSwissMap
         implements TIntIntMap
@@ -66,7 +66,7 @@ public class IntIntSwissMap
     public int put(int key, int value)
     {
         long hash = mix(key);
-        int keyByte = getKeyByte(hash);
+        long keyByte = getKeyByte(hash);
         int location = find(key, keyByte, hash);
 
         int oldValue = location >= 0 ? values[location] : noEntryValue;
@@ -83,7 +83,7 @@ public class IntIntSwissMap
     @Override
     public int putIfAbsent(int key, int value) {
         long hash = mix(key);
-        int keyByte = getKeyByte(hash);
+        long keyByte = getKeyByte(hash);
         int location = find(key, keyByte, hash);
 
         if (location >= 0) {
@@ -125,7 +125,7 @@ public class IntIntSwissMap
     public int get(int key)
     {
         long hash = mix(key);
-        int keyByte = getKeyByte(hash);
+        long keyByte = getKeyByte(hash);
 
         long keyWord = fillWordWithByte(keyByte);
         int location = getLocationFromHash(hash);
@@ -173,7 +173,7 @@ public class IntIntSwissMap
         int index = find(key);
         if (index >= 0) {
             prev = values[index];
-            removeAt(index);    // clear key,state; adjust size
+            removeAt(index);
         }
         return prev;
     }
@@ -399,7 +399,7 @@ public class IntIntSwissMap
     @Override
     public int adjustOrPutValue(int key, int adjustAmount, int putValue) {
         long hash = mix(key);
-        int keyByte = getKeyByte(hash);
+        long keyByte = getKeyByte(hash);
         int location = find(key, keyByte, hash);
         int newValue;
 
@@ -471,7 +471,7 @@ public class IntIntSwissMap
                 int value = values[i * BYTES + oldIndex];
 
                 long hash = mix(key);
-                int keyByte = getKeyByte(hash);
+                long keyByte = getKeyByte(hash);
 
                 int location = getLocationFromHash(hash);
                 int metadataIndex = keyIndexToMetadataIndex(location);
@@ -503,11 +503,11 @@ public class IntIntSwissMap
     }
 
     private static int keyIndexToMetadataWordIndex(int location) {
-        return (int) (location & METADATA_MASK);
+        return (int) (location & METADATA_MASK); // // Equivalent to location % Long.BYTES
     }
 
     private static long unsetBitAtIndex(long metadata, int indexOfByte) {
-        return metadata & ~(1 << (indexOfByte * 8 + 7));
+        return metadata & ~(1L << (indexOfByte * 8 + 7));
     }
 
     // From fastutil
@@ -528,8 +528,8 @@ public class IntIntSwissMap
         return keyIndexToMetadataIndex(numberOfTrailingZeros(getZeroBytesMask(v)));
     }
 
-    private static int getZeroBytesMask(long v) {
-        return (int) ((v - LEAST_SIGNIFICANT_BYTE_BITS) & ~v & MOST_SIGNIFICANT_BYTE_BITS);
+    private static long getZeroBytesMask(long v) {
+        return (v - LEAST_SIGNIFICANT_BYTE_BITS) & ~v & MOST_SIGNIFICANT_BYTE_BITS;
     }
 
     /**
@@ -550,8 +550,8 @@ public class IntIntSwissMap
         return (int) (h1 & mask); // Mask should always be less than integer max value
     }
 
-    private static int getKeyByte(long hash) {
-        int h2 = (int) (hash & H2_MASK);
+    private static long getKeyByte(long hash) {
+        long h2 = hash & H2_MASK;
         return h2 | KEY_BYTE_MASK;
     }
 
@@ -562,7 +562,7 @@ public class IntIntSwissMap
      * @param metadataWordIndex the index into a word in the metadata array
      * @param keyByte the key byte to insert
      */
-    private static void addKeyByteToMetadata(long[] metadatas, int metadataIndex, int metadataWordIndex, int keyByte) {
+    private static void addKeyByteToMetadata(long[] metadatas, int metadataIndex, int metadataWordIndex, long keyByte) {
         metadatas[metadataIndex] |= (keyByte << (metadataWordIndex << 3));
     }
 

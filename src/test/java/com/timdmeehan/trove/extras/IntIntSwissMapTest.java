@@ -15,8 +15,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class IntIntSwissMapTest {
 
     private static final int DEFAULT = 0XDEADBEEF;
-    private static List<Integer> overallKeys = new ArrayList<>();
-    private static List<Integer> overallValues = new ArrayList<>();
 
     @Test
     public void testPut() {
