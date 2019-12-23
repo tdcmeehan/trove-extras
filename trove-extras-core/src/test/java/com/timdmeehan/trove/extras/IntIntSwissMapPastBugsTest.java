@@ -6,28 +6,17 @@ import gnu.trove.set.hash.TIntHashSet;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class IntIntSwissMapTest {
+public class IntIntSwissMapPastBugsTest {
 
     private static final int DEFAULT = 0XDEADBEEF;
 
     @Test
-    public void testPut() {
-        IntIntSwissMap map = new IntIntSwissMap(0.75, 0XDEADBEEF, DEFAULT);
-        assertEquals(map.put(123, 456), DEFAULT);
-        assertEquals(map.get(123), 456);
-        assertEquals(map.put(123, 789), 456);
-        assertEquals(map.get(123), 789);
-    }
-
-    @Test
     public void testHashCollision() {
-        IntIntSwissMap map = new IntIntSwissMap(0.75, 0XDEADBEEF, DEFAULT);
+        IntIntSwissMap map = new IntIntSwissMap(0.75, DEFAULT, DEFAULT);
         assertEquals(map.put(284156030, 284156030), DEFAULT);
         assertEquals(map.put(1493630089, 1493630089), DEFAULT);
         assertEquals(map.put(1779951788, 1779951788), DEFAULT);
@@ -37,7 +26,7 @@ public class IntIntSwissMapTest {
 
     @Test
     public void testHashCollision2() {
-        IntIntSwissMap map = new IntIntSwissMap(0.75, 0XDEADBEEF, DEFAULT);
+        IntIntSwissMap map = new IntIntSwissMap(0.75, DEFAULT, DEFAULT);
         assertEquals(map.put(1907047228, 754934685), DEFAULT);
         assertEquals(map.put(62714928, 1496664309), DEFAULT);
         assertEquals(map.put(-90864616, 1094390393), DEFAULT);
@@ -811,7 +800,7 @@ public class IntIntSwissMapTest {
 
     @Test
     public void testHashCollision3() {
-        IntIntSwissMap map = new IntIntSwissMap(0.75, 0XDEADBEEF, DEFAULT);
+        IntIntSwissMap map = new IntIntSwissMap(0.75, DEFAULT, DEFAULT);
         assertEquals(map.get(-134951205), DEFAULT);
         assertEquals(map.put(-134951205, -2050617512), DEFAULT);
         assertEquals(map.get(-134951205), -2050617512);
@@ -847,46 +836,5 @@ public class IntIntSwissMapTest {
         assertEquals(map.get(-2053423130), 2109354329);
         assertEquals(map.put(-2053423130, 2109354329 + 1), 2109354329);
         assertEquals(map.get(-2053423130), 2109354329 + 1);
-    }
-
-    @RepeatedTest(1000)
-    public void testRandom() {
-        IntIntSwissMap map = new IntIntSwissMap(0.75, 0XDEADBEEF, DEFAULT);
-        assertTrue(map.isEmpty());
-
-        TIntSet randomInts = new TIntHashSet();
-        for (int i = 0; i < 20_000; i++) {
-            while (!randomInts.add(ThreadLocalRandom.current().nextInt())) {}
-        }
-        TIntIterator intIterator = randomInts.iterator();
-
-        while (intIterator.hasNext()) {
-            int key = intIterator.next();
-            int value = intIterator.next();
-
-            assertFalse(map.containsKey(key));
-            assertFalse(map.containsValue(value));
-
-            assertEquals(map.get(key), DEFAULT);
-            assertEquals(map.put(key, value), DEFAULT);
-            assertFalse(map.isEmpty());
-            assertTrue(map.containsKey(key));
-            assertTrue(map.containsValue(value));
-            assertEquals(map.get(key), value);
-            assertEquals(map.put(key, value + 1), value);
-            assertEquals(map.get(key), value + 1);
-            assertEquals(map.put(key, value), value + 1);
-            assertEquals(map.get(key), value);
-
-            assertTrue(map.increment(key));
-            assertEquals(map.get(key), value + 1);
-            assertTrue(map.adjustValue(key, 2));
-            assertEquals(map.get(key), value + 3);
-            assertEquals(map.remove(key), value + 3);
-            assertFalse(map.containsKey(key));
-            assertEquals(map.adjustOrPutValue(key, 4, value), value);
-            assertEquals(map.adjustOrPutValue(key, 4, value), value + 4);
-            assertEquals(map.adjustOrPutValue(key, -4, value), value);
-        }
     }
 }

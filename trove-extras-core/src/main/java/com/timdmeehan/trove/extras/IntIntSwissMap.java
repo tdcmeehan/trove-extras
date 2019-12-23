@@ -18,19 +18,21 @@ import static java.lang.Math.toIntExact;
  * An implementation of a Trove primitive integer to integer map which is inspired by SwissTable.
  */
 public class IntIntSwissMap
-        implements TIntIntMap
-{
+        implements TIntIntMap {
     // Copied from SmoothieMap implementation of SwissTable
     private static final long LEAST_SIGNIFICANT_BYTE_BITS = 0x0101010101010101L;
     private static final long MOST_SIGNIFICANT_BYTE_BITS = 0x8080808080808080L;
     // Copied from fastutil
-    /** 2<sup>32</sup> &middot; &phi;, &phi; = (&#x221A;5 &minus; 1)/2. */
+    /**
+     * 2<sup>32</sup> &middot; &phi;, &phi; = (&#x221A;5 &minus; 1)/2.
+     */
     private static final long LONG_PHI = 0x9E3779B97F4A7C15L;
     private static final int INITIAL_SIZE = 16;
     private static final long METADATA_MASK = 0x7;
     private static final long KEYS_MASK = ~METADATA_MASK;
     private static final long H2_MASK = 0x7F;
-    private static final int KEY_BYTE_MASK = 0x80;
+    private static final long KEY_BYTE_MASK = 0x80;
+    private static final int[] EMPTY_ARRAY = {};
 
     private final double loadFactor;
     private final int noEntryKey;
@@ -44,8 +46,7 @@ public class IntIntSwissMap
     private int deleted;
     private int resizeThreshold;
 
-    public IntIntSwissMap(double loadFactor, int noEntryKey, int noEntryValue)
-    {
+    public IntIntSwissMap(double loadFactor, int noEntryKey, int noEntryValue) {
         this.loadFactor = loadFactor;
         this.noEntryKey = noEntryKey;
         this.noEntryValue = noEntryValue;
@@ -63,8 +64,7 @@ public class IntIntSwissMap
     }
 
     @Override
-    public int put(int key, int value)
-    {
+    public int put(int key, int value) {
         long hash = mix(key);
         long keyByte = getKeyByte(hash);
         int location = find(key, keyByte, hash);
@@ -105,8 +105,8 @@ public class IntIntSwissMap
         // TODO: add bulk rehash method #ensureCapacity
         // ensureCapacity( map.size() );
         // TODO: could optimize this for cases when map instanceof THashMap
-        for ( Map.Entry<? extends Integer, ? extends Integer> entry : map.entrySet() ) {
-            this.put( entry.getKey().intValue(), entry.getValue().intValue() );
+        for (Map.Entry<? extends Integer, ? extends Integer> entry : map.entrySet()) {
+            this.put(entry.getKey().intValue(), entry.getValue().intValue());
         }
     }
 
@@ -122,8 +122,7 @@ public class IntIntSwissMap
     }
 
     @Override
-    public int get(int key)
-    {
+    public int get(int key) {
         long hash = mix(key);
         long keyByte = getKeyByte(hash);
 
@@ -133,7 +132,7 @@ public class IntIntSwissMap
             long metadata = metadatas[keyIndexToMetadataIndex(location)];
             int indexOfByte = getIndexOfByte(metadata, keyWord);
 
-            while (indexOfByte <= 7){
+            while (indexOfByte <= 7) {
                 if (keys[location + indexOfByte] == key) {
                     return values[location + indexOfByte];
                 }
@@ -198,7 +197,7 @@ public class IntIntSwissMap
 
     @Override
     public int[] keys() {
-        return keys(new int[]{});
+        return keys(EMPTY_ARRAY);
     }
 
     @Override
@@ -229,7 +228,7 @@ public class IntIntSwissMap
 
     @Override
     public int[] values() {
-        return values(new int[]{});
+        return values(EMPTY_ARRAY);
     }
 
     @Override
@@ -406,8 +405,7 @@ public class IntIntSwissMap
         // Location present, adjust the value
         if (location >= 0) {
             newValue = (values[location] += adjustAmount);
-        }
-        else {
+        } else {
             location = -location - 1;
             keys[location] = key;
             newValue = (values[location] = putValue);
@@ -435,7 +433,7 @@ public class IntIntSwissMap
             long metadata = metadatas[keyIndexToMetadataIndex(location)];
             int indexOfByte = getIndexOfByte(metadata, keyWord);
 
-            while (indexOfByte <= 7){
+            while (indexOfByte <= 7) {
                 if (keys[location + indexOfByte] == key) {
                     return location + indexOfByte;
                 }
@@ -534,12 +532,13 @@ public class IntIntSwissMap
 
     /**
      * Returns the index of the input byte into a word which represents 4 key bytes
-     * @param x the word to check for existence
+     *
+     * @param x       the word to check for existence
      * @param keyWord the word which represents 4 consecutive key bytes to check
      * @return the index of the key byte, or some number > 7 if not present
      */
     private static int getIndexOfByte(long x, long keyWord) {
-        return getIndexOfZeroByte( x ^ keyWord);
+        return getIndexOfZeroByte(x ^ keyWord);
     }
 
     private int getLocationFromHash(long hash) {
@@ -557,10 +556,11 @@ public class IntIntSwissMap
 
     /**
      * Adds the given keyByte into the metadata
-     * @param metadatas the metadata array
-     * @param metadataIndex the index into the metadata array
+     *
+     * @param metadatas         the metadata array
+     * @param metadataIndex     the index into the metadata array
      * @param metadataWordIndex the index into a word in the metadata array
-     * @param keyByte the key byte to insert
+     * @param keyByte           the key byte to insert
      */
     private static void addKeyByteToMetadata(long[] metadatas, int metadataIndex, int metadataWordIndex, long keyByte) {
         metadatas[metadataIndex] |= (keyByte << (metadataWordIndex << 3));
